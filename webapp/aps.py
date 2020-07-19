@@ -5,18 +5,16 @@ import flask_login
 import os
 import numpy as np
 import time
-import torch
-import torch.nn as nn
-import torch.nn.functional as F
-import torch.optim as optim
-import torchvision
-from torch.utils.data.sampler import SubsetRandomSampler
-import torchvision.datasets as datasets
-import torchvision.transforms as transforms
-from torch.utils.data import ConcatDataset
-from torch.autograd import Variable
-import split_folders
-import torchvision.models
+# import torch
+# import torch.nn as nn
+# import torch.nn.functional as F
+# import torch.optim as optim
+# import torchvision
+# from torch.utils.data.sampler import SubsetRandomSampler
+# import torchvision.datasets as datasets
+# import torchvision.transforms as transforms
+# from torch.utils.data import ConcatDataset
+# from torch.autograd import Variable
 import os
 from PIL import Image
 
@@ -69,54 +67,51 @@ def request_loader(request):
 
     return user
 
+
+#Logout route
 @app.route('/logout')
 def logout():
     flask_login.logout_user()
     return 'Logged out'
 
+#Default route
 @app.route('/')
 def login_page():
     return redirect(url_for('login'))
 
+#Login route, show login html and post to check creds
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'GET':
         return render_template('/login.html')
+    else:
+        email = request.form['email']
+        if request.form['password'] == users[email]['password']:
+            user = User()
+            user.id = email
+            flask_login.login_user(user)
+            return redirect(url_for('upload_file'))
 
-    email = request.form['email']
-    if request.form['password'] == users[email]['password']:
-        user = User()
-        user.id = email
-        flask_login.login_user(user)
-        return redirect(url_for('upload_file'))
+        return self.login_manager.unauthorized()
 
-    return self.login_manager.unauthorized()
 
 @login_manager.unauthorized_handler
 def unauthorized_handler():
     return 'Unauthorized'
 
 
-@app.route('/protected')
-@flask_login.login_required
-def protected():
-    return 'Logged in as: ' + flask_login.current_user.id
 
-
+#Upload route, come to this after user logs in successfully
 @app.route('/upload')
 @flask_login.login_required
 def upload_file():
    return render_template('/upload.html')
 	
+#This is called from the upload.html form
 @app.route('/uploader', methods = ['GET', 'POST'])
 @flask_login.login_required
 def upload_file1():
    if request.method == 'POST':
-      # files = request.files.getlist("file")
-      # for f in files:
-      #    f.save(secure_filename(f.filename))
-      # return 'file uploaded successfully'
-
       target = os.path.join(APP_ROOT, 'images/')
       print(target)
       if not os.path.isdir(target):
@@ -134,19 +129,23 @@ def upload_file1():
          upload.save(destination)
       return redirect(url_for('run_ai'))
 
+
 @app.route('/upload/<filename>')
 def send_image(filename):
     return send_from_directory("images", filename)
 
+#You can go to this manually to see all the uploaded images
 @app.route('/gallery')
 @flask_login.login_required
 def get_gallery():
 
-   image_names = os.listdir('./images')
-   print(image_names)
-   return render_template("gallery.html", image_names=image_names)
+   image_name = os.listdir('./images')
+   print(image_name)
+   return render_template("gallery.html", image_names=enumerate(image_name), labels=image_name)
 
 
+#Come here after all files get uploaded
+#Here we run ai model and get the labels
 @app.route('/ai')
 @flask_login.login_required
 def run_ai():
@@ -161,7 +160,7 @@ def run_ai():
             or img.endswith(".PNG")):
             labels.append(classify_image(folder_path + "/" + img))
     print("The labels are: " + str(labels))
-    return render_template("model_output.html", image_names=enumerate(image_names), labels=labels)
+    return render_template("model_output.html", image_names=enumerate(image_names), labels=image_names)
 
 class Transfer3(nn.Module):
     def __init__(self):
