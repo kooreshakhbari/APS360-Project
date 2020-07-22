@@ -29,6 +29,7 @@ classes = ['almond', 'apple', 'asparagus', 'bacon', 'banana', 'beef_ground',
                'pineapple', 'potato', 'rice', 'salmon', 'sausage', 'scallion',
                'shrimp', 'spaghetti', 'spinach', 'thyme', 'tomato', 'vinegar']
 app = Flask(__name__)
+app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
 app.secret_key = 'secret string lol'
 login_manager = flask_login.LoginManager()
 login_manager.init_app(app)
@@ -162,20 +163,20 @@ def run_ai():
     print("The labels are: " + str(labels))
     return render_template("model_output.html", image_names=enumerate(image_names), labels=image_names)
 
-class Transfer3(nn.Module):
-    def __init__(self):
-        super(Transfer3, self).__init__()
-        self.name = "Kooresh_Transfer3_contd95"
-        self.conv1 = nn.Conv2d(256, 70, 2)
-        self.fc1 = nn.Linear(70 * 5 * 5, 200)
-        self.fc2 = nn.Linear(200, len(classes))
+# class Transfer3(nn.Module):
+#     def __init__(self):
+#         super(Transfer3, self).__init__()
+#         self.name = "Kooresh_Transfer3_contd95"
+#         self.conv1 = nn.Conv2d(256, 70, 2)
+#         self.fc1 = nn.Linear(70 * 5 * 5, 200)
+#         self.fc2 = nn.Linear(200, len(classes))
   
-    def forward(self, x):
-        x = F.relu(self.conv1(x))
-        x = x.view(-1, 70 * 5 * 5)
-        x = torch.tanh(self.fc1(x))
-        x = self.fc2(x)
-        return x
+#     def forward(self, x):
+#         x = F.relu(self.conv1(x))
+#         x = x.view(-1, 70 * 5 * 5)
+#         x = torch.tanh(self.fc1(x))
+#         x = self.fc2(x)
+#         return x
 
 def classify_image(img_path):
 
@@ -188,20 +189,21 @@ def classify_image(img_path):
     Returns:
         A string representing the label 
     """
-    transform = transforms.Compose([transforms.Resize((224,224)), 
-                      transforms.ToTensor(), 
-                      transforms.Normalize((0.5,0.5,0.5),(0.5,0.5,0.5))])
-    test_img = transform(Image.open(img_path))
-    test_img.unsqueeze_(0)
-    input = Variable(test_img)
-    model = Transfer3()
-    model_path = '/home/Kooresh/APS360-Project/Kooresh_Transfer3_contd95-bs256-lr8e-05/model_Kooresh_Transfer3_contd95_bs256_lr8e-05_epoch9'
-    model_state = torch.load(model_path)
-    model.load_state_dict(model_state)
-    alexnet = torchvision.models.alexnet(pretrained=True)
-    label = model(alexnet.features(input))
+    # transform = transforms.Compose([transforms.Resize((224,224)), 
+    #                   transforms.ToTensor(), 
+    #                   transforms.Normalize((0.5,0.5,0.5),(0.5,0.5,0.5))])
+    # test_img = transform(Image.open(img_path))
+    # test_img.unsqueeze_(0)
+    # input = Variable(test_img)
+    # model = Transfer3()
+    # model_path = '/home/Kooresh/APS360-Project/Kooresh_Transfer3_contd95-bs256-lr8e-05/model_Kooresh_Transfer3_contd95_bs256_lr8e-05_epoch9'
+    # model_state = torch.load(model_path)
+    # model.load_state_dict(model_state)
+    # alexnet = torchvision.models.alexnet(pretrained=True)
+    # label = model(alexnet.features(input))
     
-    return classes[label.data.numpy().argmax()]
+    # return classes[label.data.numpy().argmax()]
+    return "Hello"
 		
 if __name__ == '__main__':
    app.run(debug = True)

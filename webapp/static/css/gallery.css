@@ -16,11 +16,3 @@
     background: -moz-linear-gradient(-135deg, #c850c0, #4158d0);
     background: linear-gradient(-135deg, #c850c0, #4158d0);
 }
-
-[contenteditable="true"] {
-    background-color: #9053c7;
-}
-
-[contenteditable="true"]:focus {
-    background-color: white;
-}
