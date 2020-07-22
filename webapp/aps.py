@@ -17,7 +17,8 @@ import time
 # from torch.autograd import Variable
 import os
 from PIL import Image
-
+import requests
+    
 classes = ['almond', 'apple', 'asparagus', 'bacon', 'banana', 'beef_ground',
                'beef_steak', 'beet', 'blueberries', 'brussel_sprout', 'bun_hamburger',
                'bun_hotdog', 'butter', 'cabbage', ' carrot', 'cauliflower', 'celery',
@@ -111,23 +112,27 @@ def upload_file():
 @app.route('/uploader', methods = ['GET', 'POST'])
 @flask_login.login_required
 def upload_file1():
-   if request.method == 'POST':
-      target = os.path.join(APP_ROOT, 'images/')
-      print(target)
-      if not os.path.isdir(target):
-         os.mkdir(target)
-      else:
-         print("Couldn't create upload directory: {}".format(target))
-      print(request.files.getlist("file"))
-      for upload in request.files.getlist("file"):
-         print(upload)
-         print("{} is the file name".format(upload.filename))
-         filename = str(time.time()) + upload.filename
-         destination = "/".join([target, filename])
-         print ("Accept incoming file:", filename)
-         print ("Save it to:", destination)
-         upload.save(destination)
-      return redirect(url_for('run_ai'))
+    if request.method == 'POST':
+        target = os.path.join(APP_ROOT, 'images/')
+        print(target)
+        if not os.path.isdir(target):
+            os.mkdir(target)
+        else:
+            print("Couldn't create upload directory: {}".format(target))
+            #Redirect to error page
+        
+        print(request.files.getlist("file"))
+        for upload in request.files.getlist("file"):
+            print(upload)
+            print("{} is the file name".format(upload.filename))
+            filename = str(time.time()) + upload.filename
+            destination = "/".join([target, filename])
+            print ("Accept incoming file:", filename)
+            print ("Save it to:", destination)
+            upload.save(destination)
+        #print(request.form['ex_ing'])
+        exluded = str(request.form['ex_ing'])
+        return redirect(url_for('run_ai', exc_list=exluded))
 
 
 @app.route('/upload/<filename>')
@@ -160,7 +165,8 @@ def run_ai():
             or img.endswith(".PNG")):
             labels.append(classify_image(folder_path + "/" + img))
     print("The labels are: " + str(labels))
-    return render_template("model_output.html", image_names=enumerate(image_names), labels=image_names)
+    #TODO: Change labels=images_names to labels
+    return render_template("model_output.html", image_names=enumerate(image_names), labels=labels, len_images=len(image_names))
 
 class Transfer3(nn.Module):
     def __init__(self):
@@ -202,7 +208,63 @@ def classify_image(img_path):
     label = model(alexnet.features(input))
     
     return classes[label.data.numpy().argmax()]
-		
+
+@app.route('/run_api', methods = ['GET', 'POST'])
+@flask_login.login_required
+def call_api():
+    ingredient_list=[]
+    if request.method == 'POST':
+        for i in range(int(request.form['len_img'])):
+            ingredient_list.append(str(request.form[str(i)]))
+        
+
+    for i in range(3):
+        cutoff = 3 - i
+
+        if len(ingredient_list) > cutoff:
+            ingredient_list = ingredient_list[:cutoff]
+
+        ingredient_string = ''
+        for ingredient in ingredient_list:
+            ingredient_string += ingredient + ', '
+
+        ingredient_string = ingredient_string[:-2]
+        print('ingredientString is', ingredient_string)
+
+        # Set up the parameters we want to pass to the API.
+        # q: any ingredient in string form
+        # app_id is the application ID of recipe search 
+        # app_key is the application authentication key
+        parameters = {"q": ingredient_string, "app_id": '85b9158f', "app_key": 'b6e60f224ffd3c0a1d048088ada1dc22'}
+        # Make a get request with the parameters
+        response = requests.get("https://api.edamam.com/search", params=parameters)
+
+        # If status code is 200, the request is successful
+        print('Status Code:', response.status_code)
+
+        # Get the response data as a python object.
+        data = response.json()
+
+        if len(data['hits']) is 0:
+            continue
+        
+
+        recipes = {"Name": [], "Links": []}
+        for hit in data['hits']:
+            try:
+                print('Recipe:', hit['recipe']['label'])
+                recipes["Name"].append(hit['recipe']['label'])
+                print('Recipe Instructions Link:', hit['recipe']['url'])
+                recipes["Links"].append(hit['recipe']['url'])
+                print(' ')
+            except:
+                pass
+
+        break
+    print(recipes)
+    return render_template("recipes.html", recipes=(recipes), length=enumerate(recipes["Name"]))
+
+
 if __name__ == '__main__':
    app.run(debug = True)
 
