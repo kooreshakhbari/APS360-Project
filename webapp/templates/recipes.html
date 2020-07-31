@@ -1,0 +1,20 @@
+<html>
+   <head>
+        <link rel="stylesheet" type="text/css" href="/static/css/upload.css">
+        <meta charset="UTF-8">
+        <title>Prediction</title>
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css"
+            integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+        <title>Recipes</title>
+   </head>
+   <body class="body">
+      <ul>
+        {% for index, l in length%}
+             <li>
+                {{recipes["Name"][index]}}:
+                <a href={{recipes["Links"][index]}} style="color:snow">{{recipes["Links"][index]}} </a>
+            </li>
+        {% endfor %}
+      </ul>
+   </body>
+</html>

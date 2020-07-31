@@ -1,9 +1,16 @@
 <html>
-   <body>
+   <head>
+      <link rel="stylesheet" type="text/css" href="/static/css/upload.css">
+      <title>Upload Images</title>
+   </head>
+   <body class="body">
       <form action = "/uploader" method = "POST" 
          enctype = "multipart/form-data">
+         Please give us a list of ingredients that you don't want in your recipe. In the form of ingredient1, ingredient2, etc..<br><br><br><br>
+         Excluded Ingredients: <input type="text" name="ex_ing"><br><br><br><br>
          <input type = "file" name = "file" multiple />
          <input type = "submit"/>
+         
       </form>
    </body>
 </html>

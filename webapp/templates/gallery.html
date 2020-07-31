@@ -1,24 +1,26 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <link rel="stylesheet" type="text/css" href="/static/css/upload.css">
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>Prediction</title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css"
           integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+    
 
 </head>
-<body>
+<body class="body">
 <div class="container">
 
     <div class="row">
 
         <div class="col-lg-12">
-            <h1 class="page-header">Thumbnail Gallery</h1>
+            <h1 class="page-header">AI Prediction</h1>
         </div>
-        {{image_names}}
+        <p>If any of the following ingredients are misclassified, simply click on the ingredient label and edit it to correct it</p>
         <hr>
-        {% for image_name in image_names %}
-        <div class="col-lg-3 col-md-4 col-xs-6 thumb">
+        {% for index, image_name in image_names %}
+        <div class="col-lg-3 col-md-4 col-xs-6 thumb"> <p contenteditable="true">{{labels[index]}}</p>
             <img class="img-responsive" src=" {{url_for('send_image', filename=image_name)}}">
         </div>
         {% endfor %}
