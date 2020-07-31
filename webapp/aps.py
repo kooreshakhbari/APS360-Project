@@ -1,34 +1,33 @@
-from flask import Flask, render_template, request, redirect, url_for, send_from_directory
+from flask import Flask, render_template, request, redirect, url_for, send_from_directory, session
 from werkzeug.utils import secure_filename
 from jinja2 import Template
 import flask_login
 import os
 import numpy as np
 import time
-# import torch
-# import torch.nn as nn
-# import torch.nn.functional as F
-# import torch.optim as optim
-# import torchvision
-# from torch.utils.data.sampler import SubsetRandomSampler
-# import torchvision.datasets as datasets
-# import torchvision.transforms as transforms
-# from torch.utils.data import ConcatDataset
-# from torch.autograd import Variable
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+import torch.optim as optim
+import torchvision
+from torch.utils.data.sampler import SubsetRandomSampler
+import torchvision.datasets as datasets
+import torchvision.transforms as transforms
+from torch.utils.data import ConcatDataset
+from torch.autograd import Variable
 import os
 from PIL import Image
 import requests
     
 classes = ['almond', 'apple', 'asparagus', 'bacon', 'banana', 'beef_ground',
-               'beef_steak', 'beet', 'blueberries', 'brussel_sprout', 'bun_hamburger',
-               'bun_hotdog', 'butter', 'cabbage', ' carrot', 'cauliflower', 'celery',
-               'cheese_block', 'cheese_shredded', 'chicken_breast', 'chicken_leg',
-               'chicken_wing', 'corn', 'croissant', 'cucumber', 'egg', 'garlic',
-               'ginger', 'grape', 'honey', 'ketchup', 'lemon', 'lobster', 'mango',
-               'mayonnaise', 'milk', 'mushroom', 'mustard', 'noodle', 'oil_vegetable', 
-               'onion', 'orange', 'peach', 'pear', 'pepper_bell', 'pepper_chile', 
-               'pineapple', 'potato', 'rice', 'salmon', 'sausage', 'scallion',
-               'shrimp', 'spaghetti', 'spinach', 'thyme', 'tomato', 'vinegar']
+            'beef_steak', 'blueberries', 'bun_hotdog', 'cabbage', ' carrot', 
+            'cauliflower', 'celery', 'cheese_shredded', 'chicken_breast', 
+            'chicken_leg', 'corn',  'cucumber', 'egg', 'garlic',
+            'grape', 'ketchup', 'lemon', 'lobster', 'mango',
+            'mayonnaise', 'milk', 'mushroom', 'mustard', 'noodle', 'oil_vegetable', 
+            'onion', 'orange', 'pepper_bell', 'pepper_chile', 
+            'pineapple', 'potato', 'rice', 'salmon', 'sausage', 'scallion',
+            'shrimp', 'spaghetti', 'spinach', 'tomato']
 app = Flask(__name__)
 app.secret_key = 'secret string lol'
 login_manager = flask_login.LoginManager()
@@ -166,7 +165,7 @@ def run_ai():
             labels.append(classify_image(folder_path + "/" + img))
     print("The labels are: " + str(labels))
     #TODO: Change labels=images_names to labels
-    return render_template("model_output.html", image_names=enumerate(image_names), labels=labels, len_images=len(image_names))
+    return render_template("model_output.html", image_names=enumerate(image_names), labels=labels, len_images=len(image_names), excluded=session.get("exc_list", None))
 
 class Transfer3(nn.Module):
     def __init__(self):
@@ -201,7 +200,7 @@ def classify_image(img_path):
     test_img.unsqueeze_(0)
     input = Variable(test_img)
     model = Transfer3()
-    model_path = '/home/Kooresh/APS360-Project/Kooresh_Transfer3_contd95-bs256-lr8e-05/model_Kooresh_Transfer3_contd95_bs256_lr8e-05_epoch9'
+    model_path = '/home/Kooresh/APS360-Project/model_Defne_Transfer7_contd110_bs256_lr8e-05_epoch19'
     model_state = torch.load(model_path)
     model.load_state_dict(model_state)
     alexnet = torchvision.models.alexnet(pretrained=True)
@@ -235,7 +234,7 @@ def call_api():
         # q: any ingredient in string form
         # app_id is the application ID of recipe search 
         # app_key is the application authentication key
-        parameters = {"q": ingredient_string, "app_id": '85b9158f', "app_key": 'b6e60f224ffd3c0a1d048088ada1dc22'}
+        parameters = {"q": ingredient_string, "app_id": '85b9158f', "app_key": 'b6e60f224ffd3c0a1d048088ada1dc22', "excluded": request.form['excluded_ing']}
         # Make a get request with the parameters
         response = requests.get("https://api.edamam.com/search", params=parameters)
 
